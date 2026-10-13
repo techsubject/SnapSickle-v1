@@ -42,7 +42,7 @@ Keep the extracted folder in place while using the extension.
 
 1. Open [DashCraft.io](https://dashcraft.io/).
 2. Enter the track editor.
-3. Press **Tab** to open the SnapSickle settings panel.
+3. Press **Ctrl** to open the SnapSickle settings panel.
 4. Check the version number displayed in the panel.
 
 ### 3. Configure Grid Snapping
