@@ -18,7 +18,9 @@
   const panel=document.createElement("section"); panel.id="dcgs-panel"; panel.setAttribute("aria-label","SnapSickle Grid Snap");
   const patchState=document.documentElement?.getAttribute("data-dcgs-patch");
   let statusText=patchState==="applied"?`X/Z: ${document.documentElement.getAttribute("data-dcgs-xz")}; Y: ${document.documentElement.getAttribute("data-dcgs-y")}.`:patchState==="mismatch"?"Patch not applied: this game build does not match. Check the console.":"X/Z and Y settings are applied when the game code loads.";
-  panel.innerHTML=`<div class="dcgs-header"><div class="dcgs-brand"><img class="dcgs-logo" src="${logoUrl}" alt="SnapSickle-logo"><div class="dcgs-title">SnapSickle <span style="font-weight:400;color:#aeb4be">Grid Snap</span><span class="dcgs-version">v0.4.3</span></div></div><div><span class="dcgs-key">Tab</span> <button class="dcgs-close" type="button">Close</button></div></div>${Object.entries(settings).map(([key,cfg])=>`<div class="dcgs-setting"><div class="dcgs-row"><label for="dcgs-${key}">${cfg.title}</label><output class="dcgs-value" id="dcgs-${key}-value">${values[key]}</output></div><input id="dcgs-${key}" data-key="${key}" type="range" min="${cfg.min}" max="${cfg.max}" step="1" value="${values[key]}"><div class="dcgs-scale"><span>${cfg.min}</span><span>${Math.round((cfg.min+cfg.max)/2)}</span><span>${cfg.max}</span></div></div>`).join("")}<div class="dcgs-status" id="dcgs-status">${statusText}</div><div class="dcgs-note">Only X/Z and Y grid spacing are changed. Rotation rules and unverified legacy/camera locations are left untouched. Reload DashCraft after changing a setting, and disable older SnapSickle copies before testing.</div>`;
+  
+  panel.innerHTML=`<div class="dcgs-header"><div class="dcgs-brand"><img class="dcgs-logo" src="${logoUrl}" alt="SnapSickle-logo"><div class="dcgs-title">SnapSickle <span style="font-weight:400;color:#aeb4be">Grid Snap</span><span class="dcgs-version">v0.4.3</span></div></div><div><span class="dcgs-key">Ctrl</span> <button class="dcgs-close" type="button">Close</button></div></div>${Object.entries(settings).map(([key,cfg])=>`<div class="dcgs-setting"><div class="dcgs-row"><label for="dcgs-${key}">${cfg.title}</label><output class="dcgs-value" id="dcgs-${key}-value">${values[key]}</output></div><input id="dcgs-${key}" data-key="${key}" type="range" min="${cfg.min}" max="${cfg.max}" step="1" value="${values[key]}"><div class="dcgs-scale"><span>${cfg.min}</span><span>${Math.round((cfg.min+cfg.max)/2)}</span><span>${cfg.max}</span></div></div>`).join("")}<div class="dcgs-status" id="dcgs-status">${statusText}</div><div class="dcgs-note">Only X/Z and Y grid spacing are changed. Rotation rules and unverified legacy/camera locations are left untouched. Reload DashCraft after changing a setting, and disable older SnapSickle copies before testing.</div>`;
+  
   (document.documentElement||document.body).appendChild(panel);
   const status=panel.querySelector("#dcgs-status"); let isOpen=false;
   function publish(key,raw) {
@@ -32,6 +34,14 @@
   function setOpen(open) { isOpen=Boolean(open); panel.classList.toggle("dcgs-open",isOpen); panel.setAttribute("aria-hidden",String(!isOpen)); }
   for(const slider of panel.querySelectorAll('input[type="range"]')) slider.addEventListener("input",()=>publish(slider.dataset.key,slider.value));
   panel.querySelector(".dcgs-close").addEventListener("click",()=>setOpen(false));
-  document.addEventListener("keydown",event=>{if(event.key!=="Tab"||event.ctrlKey||event.altKey||event.metaKey)return;event.preventDefault();event.stopPropagation();setOpen(!isOpen);},true);
+  
+  document.addEventListener("keydown",event=>{
+    if (event.key === "Control" || event.code === "ControlLeft" || event.code === "ControlRight") {
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(!isOpen);
+    }
+  },true);
+  
   try { chrome.storage.local.get(["dashcraftGridSnap",...Object.values(settings).map(v=>v.storage),"dashcraftGridSnapY"],result=>{for(const [key,cfg] of Object.entries(settings)){if(localStorage.getItem(cfg.key))continue;const stored=result[cfg.storage];const old=key==="xz"?result.dashcraftGridSnap:undefined;const n=Number.isInteger(stored)?stored:old;if(Number.isInteger(n)&&n>=cfg.min&&n<=cfg.max){panel.querySelector(`#dcgs-${key}`).value=String(n);publish(key,n);}}}); } catch(_) {}
 })();
